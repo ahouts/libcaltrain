@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.ahouts"
-version = "1.0-SNAPSHOT"
+version = "0.1.0"
 
 repositories {
     jcenter()
@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+    implementation(group = "org.jsoup", name = "jsoup", version = "1.12.1")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
     testImplementation(kotlin("reflect"))
