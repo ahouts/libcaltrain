@@ -1,0 +1,10 @@
+language: java
+install: true
+
+os: linux
+dist: trusty
+jdk: openjdk11
+
+script:
+  - ./gradlew test --scan -s
+  - ./gradlew build --scan -s
