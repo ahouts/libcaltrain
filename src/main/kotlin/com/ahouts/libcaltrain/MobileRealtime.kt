@@ -21,6 +21,7 @@ fun parseMobileDepartures(html: InputStream, currentTime: LocalTime): Departures
                 val trainNo = row.selectFirst(".ipf-st-ip-trains-subtable-td-id")
                     .text()
                     .toInt()
+                    .let { TrainNo(it) }
 
                 val trainType = row.selectFirst(".ipf-st-ip-trains-subtable-td-type")
                     .text()

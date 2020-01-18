@@ -4,6 +4,8 @@ import com.ahouts.libcaltrain.Zone.*
 import java.net.URL
 import java.util.*
 
+private val NOT_LETTER = Regex("[^a-zA-Z0-9]")
+
 sealed class Station {
 
     abstract val displayName: String
@@ -275,13 +277,13 @@ sealed class Station {
     companion object {
 
         fun fromString(s: String): Station? =
-            when (s.toLowerCase(Locale.US)) {
+            when (s.toLowerCase(Locale.US).replace(NOT_LETTER, "")) {
                 "sanfrancisco" -> SanFrancisco
-                "22ndstreet" -> TwentySecondStreet
+                "22ndstreet", "22ndst" -> TwentySecondStreet
                 "bayshore" -> Bayshore
                 "southsanfrancisco" -> SouthSanFrancisco
                 "sanbruno" -> SanBruno
-                "millbrae" -> Millbrae
+                "millbrae", "millbraetransitcenter" -> Millbrae
                 "broadway" -> Broadway
                 "burlingame" -> Burlingame
                 "sanmateo" -> SanMateo

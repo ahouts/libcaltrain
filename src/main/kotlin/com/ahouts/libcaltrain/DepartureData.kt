@@ -3,6 +3,8 @@ package com.ahouts.libcaltrain
 import java.time.LocalTime
 import java.util.*
 
+data class TrainNo(val no: Int)
+
 sealed class TrainType {
 
     object Local : TrainType()
@@ -44,6 +46,6 @@ sealed class Direction {
 
 }
 
-data class Departure(val trainNo: Int, val trainType: TrainType, val departureTime: LocalTime)
+data class Departure(val trainNo: TrainNo, val trainType: TrainType, val departureTime: LocalTime)
 
 data class Departures(val northbound: List<Departure>, val southbound: List<Departure>)

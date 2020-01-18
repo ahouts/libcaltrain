@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 internal class StationTest {
 
     @Test
-    fun roundTrip() {
+    fun `serialization round trip works`() {
         for (subclass in Station::class.sealedSubclasses) {
             val s = subclass.objectInstance.toString()
             assertEquals(Station.fromString(s)!!::class, subclass)
@@ -14,7 +14,7 @@ internal class StationTest {
     }
 
     @Test
-    fun parseInvalid() {
+    fun `parsing invalid yields null`() {
         assertNull(Station.fromString("abc"))
         assertNull(Station.fromString(""))
     }
