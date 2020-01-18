@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.3.61"
+    id("com.github.ben-manes.versions") version "0.27.0"
 }
 
 group = "com.ahouts"
@@ -10,21 +11,21 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("stdlib"))
     implementation(group = "org.jsoup", name = "jsoup", version = "1.12.1")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testImplementation(kotlin("reflect"))
 
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
 }
 
 tasks {
     compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "11"
     }
     compileTestKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "11"
     }
     test {
         useJUnitPlatform()

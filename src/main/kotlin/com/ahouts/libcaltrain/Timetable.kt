@@ -15,7 +15,7 @@ private val RANDOM_TABLE_GARBAGE = Regex("[+*]")
 
 data class Timetable(val departures: Map<Station, List<TimetableDeparture>>)
 
-data class TimetableDeparture(val direction: Direction, val departure: Departure)
+data class TimetableDeparture(val direction: Direction, val departure: Departure, val realtime: Boolean)
 
 fun parseTimetable(html: InputStream): Timetable {
     val doc = Jsoup.parse(html, "UTF-8", "http://www.caltrain.com")
@@ -66,7 +66,7 @@ fun parseTimetable(html: InputStream): Timetable {
                                 else -> Local
                             }
 
-                            val isAm = text.last() == 'a'
+                            val isAm = text.last() == 'a' || text.substring(0..1) == "12"
                             val hoursMinutes = text.substring(0 until (text.length - 1))
                                 .split(":")
                                 .map(String::toInt)
@@ -88,7 +88,7 @@ fun parseTimetable(html: InputStream): Timetable {
                         .map {
                             Pair(
                                 it.first,
-                                TimetableDeparture(direction, Departure(pair.first!!, it.second!!, it.third!!))
+                                TimetableDeparture(direction, Departure(pair.first!!, it.second!!, it.third!!), false)
                             )
                         }
                 }
@@ -98,6 +98,69 @@ fun parseTimetable(html: InputStream): Timetable {
         .toMap()
 
     return Timetable(departuresData)
+}
+
+fun insertRealtimeData(timetable: Timetable, station: Station, realtimeData: Departures): Timetable =
+    Timetable(
+        timetable.departures.asSequence()
+            .map { entry ->
+                when {
+                    isDeparturesFromStation(entry, station) -> Pair(
+                        entry.key,
+                        listOf(
+                            realtimeData.northbound.map { Pair(Northbound, it) },
+                            realtimeData.southbound.map { Pair(Southbound, it) })
+                            .flatten()
+                            .reduce(entry.value) { departures, realtimeDeparture ->
+                                when {
+                                    isPresent(
+                                        departures,
+                                        realtimeDeparture.second,
+                                        realtimeDeparture.first
+                                    ) -> departures.map { departure ->
+                                        if (departure.isRealtimeEqual(
+                                                realtimeDeparture.first,
+                                                realtimeDeparture.second
+                                            )
+                                        ) TimetableDeparture(realtimeDeparture.first, realtimeDeparture.second, true)
+                                        else departure
+                                    }
+                                    else -> departures.plus(
+                                        TimetableDeparture(
+                                            realtimeDeparture.first,
+                                            realtimeDeparture.second,
+                                            true
+                                        )
+                                    )
+                                }
+                            })
+                    else -> entry.toPair()
+                }
+            }
+            .toMap()
+    )
+
+private fun isDeparturesFromStation(
+    stationDepartures: Map.Entry<Station, List<TimetableDeparture>>,
+    station: Station
+): Boolean =
+    stationDepartures.key == station
+
+private fun isPresent(
+    departures: List<TimetableDeparture>,
+    realtimeDeparture: Departure,
+    realtimeDirection: Direction
+): Boolean = departures.any { it.isRealtimeEqual(realtimeDirection, realtimeDeparture) }
+
+private fun TimetableDeparture.isRealtimeEqual(direction: Direction, departure: Departure): Boolean =
+    this.direction == direction && this.departure.trainNo == departure.trainNo
+
+private inline fun <S, T> Iterable<T>.reduce(acc: S, apply: (S, T) -> S): S {
+    var res = acc
+    for (elem in this) {
+        res = apply(res, elem)
+    }
+    return res
 }
 
 private fun <T> List<List<T>>.transpose(): List<List<T>> {
