@@ -6,5 +6,5 @@ dist: trusty
 jdk: openjdk11
 
 script:
-  - ./gradlew test --scan -s
-  - ./gradlew build --scan -s
+  - ./gradlew test -s
+  - ./gradlew build -s
