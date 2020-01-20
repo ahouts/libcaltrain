@@ -24,11 +24,11 @@ internal class TimetableTest {
                 TimetableDeparture(Southbound, Departure(TrainNo(262), Limited, LocalTime.of(18, 35)), false),
                 TimetableDeparture(Southbound, Departure(TrainNo(268), Limited, LocalTime.of(19, 18)), false)
             ),
-            timetable.departures[Gilroy]
+            timetable[Gilroy]
         )
         assertEquals(
             TimetableDeparture(Southbound, Departure(TrainNo(376), BabyBullet, LocalTime.of(18, 17)), false),
-            timetable.departures[PaloAlto]?.first { it.direction == Southbound && it.departure.trainNo.no == 376 }
+            timetable[PaloAlto]?.first { it.direction == Southbound && it.departure.trainNo.no == 376 }
         )
     }
 
@@ -53,7 +53,7 @@ internal class TimetableTest {
                 TimetableDeparture(Northbound, Departure(TrainNo(103), Local, LocalTime.of(6, 21)), true),
                 TimetableDeparture(Northbound, Departure(TrainNo(207), Limited, LocalTime.of(7, 15)), true)
             ),
-            updated.departures[SouthSanFrancisco]!!
+            updated[SouthSanFrancisco]!!
                 .filter { it.direction == Northbound }
                 .filter { it.departure.departureTime <= LocalTime.of(7, 15) }
         )
@@ -65,7 +65,7 @@ internal class TimetableTest {
                 TimetableDeparture(Southbound, Departure(TrainNo(208), Limited, LocalTime.of(6, 32)), true),
                 TimetableDeparture(Southbound, Departure(TrainNo(310), BabyBullet, LocalTime.of(6, 42)), true)
             ),
-            updated.departures[SouthSanFrancisco]!!
+            updated[SouthSanFrancisco]!!
                 .filter { it.direction == Southbound }
                 .filter { it.departure.departureTime <= LocalTime.of(6, 42) }
         )

@@ -1,16 +1,18 @@
 package com.ahouts.libcaltrain
 
+import com.ahouts.libcaltrain.Direction.*
 import com.ahouts.libcaltrain.Zone.*
 import java.net.URL
 import java.util.*
 
 private val NOT_LETTER = Regex("[^a-zA-Z0-9]")
 
-sealed class Station {
+sealed class Station : Comparable<Station> {
 
     abstract val displayName: String
     abstract val realtimeMobileUrl: URL
     abstract val zone: Zone
+    abstract fun nextInDirection(direction: Direction): Station?
     open val weekdayCommuteOnly: Boolean = false
     open val weekendOnly: Boolean = false
 
@@ -49,11 +51,26 @@ sealed class Station {
             Gilroy -> "Gilroy"
         }
 
+    override fun compareTo(other: Station): Int = when (other) {
+        this -> 0
+        else -> when (val next = this.nextInDirection(Southbound)) {
+            null -> 1
+            else -> when (val res = next.compareTo(other)) {
+                0 -> -1
+                else -> res
+            }
+        }
+    }
+
     object SanFrancisco : Station() {
         override val displayName = "San Francisco Station"
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/sanfranciscostation-mobile.html")
         override val zone = Zone1
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> null
+            Southbound -> TwentySecondStreet
+        }
     }
 
     object TwentySecondStreet : Station() {
@@ -61,6 +78,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/22ndstreetstation-mobile.html")
         override val zone = Zone1
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> SanFrancisco
+            Southbound -> Bayshore
+        }
     }
 
     object Bayshore : Station() {
@@ -68,6 +89,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/bayshorestation-mobile.html")
         override val zone = Zone1
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> TwentySecondStreet
+            Southbound -> SouthSanFrancisco
+        }
     }
 
     object SouthSanFrancisco : Station() {
@@ -75,6 +100,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/southsanfranciscostation-mobile.html")
         override val zone = Zone1
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> Bayshore
+            Southbound -> SanBruno
+        }
     }
 
     object SanBruno : Station() {
@@ -82,6 +111,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/sanbrunostation-mobile.html")
         override val zone = Zone1
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> SouthSanFrancisco
+            Southbound -> Millbrae
+        }
     }
 
     object Millbrae : Station() {
@@ -89,6 +122,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/millbraetransitcenter-mobile.html")
         override val zone = Zone2
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> SanBruno
+            Southbound -> Broadway
+        }
     }
 
     object Broadway : Station() {
@@ -97,6 +134,10 @@ sealed class Station {
             URL("http://www.caltrain.com/schedules/realtime/stations/broadwaystation-mobile.html")
         override val zone = Zone2
         override val weekendOnly = true
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> Millbrae
+            Southbound -> Burlingame
+        }
     }
 
     object Burlingame : Station() {
@@ -104,6 +145,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/burlingamestation-mobile.html")
         override val zone = Zone2
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> Broadway
+            Southbound -> SanMateo
+        }
     }
 
     object SanMateo : Station() {
@@ -111,6 +156,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/sanmateostation-mobile.html")
         override val zone = Zone2
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> Burlingame
+            Southbound -> HaywardPark
+        }
     }
 
     object HaywardPark : Station() {
@@ -118,6 +167,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/haywardparkstation-mobile.html")
         override val zone = Zone2
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> SanMateo
+            Southbound -> Hillsdale
+        }
     }
 
     object Hillsdale : Station() {
@@ -125,6 +178,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/hillsdalestation-mobile.html")
         override val zone = Zone2
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> HaywardPark
+            Southbound -> Belmont
+        }
     }
 
     object Belmont : Station() {
@@ -132,6 +189,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/belmontstation-mobile.html")
         override val zone = Zone2
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> Hillsdale
+            Southbound -> SanCarlos
+        }
     }
 
     object SanCarlos : Station() {
@@ -139,6 +200,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/sancarlosstation-mobile.html")
         override val zone = Zone2
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> Belmont
+            Southbound -> RedwoodCity
+        }
     }
 
     object RedwoodCity : Station() {
@@ -146,6 +211,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/redwoodcitystation-mobile.html")
         override val zone = Zone2
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> SanCarlos
+            Southbound -> Atherton
+        }
     }
 
     object Atherton : Station() {
@@ -154,6 +223,10 @@ sealed class Station {
             URL("http://www.caltrain.com/schedules/realtime/stations/athertonstation-mobile.html")
         override val zone = Zone3
         override val weekendOnly = true
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> RedwoodCity
+            Southbound -> MenloPark
+        }
     }
 
     object MenloPark : Station() {
@@ -161,6 +234,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/menloparkstation-mobile.html")
         override val zone = Zone3
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> Atherton
+            Southbound -> PaloAlto
+        }
     }
 
     object PaloAlto : Station() {
@@ -168,6 +245,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/paloaltostation-mobile.html")
         override val zone = Zone3
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> MenloPark
+            Southbound -> CaliforniaAve
+        }
     }
 
     object CaliforniaAve : Station() {
@@ -175,6 +256,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/californiaavestation-mobile.html")
         override val zone = Zone3
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> PaloAlto
+            Southbound -> SanAntonio
+        }
     }
 
     object SanAntonio : Station() {
@@ -182,6 +267,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/sanantoniostation-mobile.html")
         override val zone = Zone3
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> CaliforniaAve
+            Southbound -> MountainView
+        }
     }
 
     object MountainView : Station() {
@@ -189,6 +278,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/mountainviewstation-mobile.html")
         override val zone = Zone3
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> SanAntonio
+            Southbound -> Sunnyvale
+        }
     }
 
     object Sunnyvale : Station() {
@@ -196,6 +289,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/sunnyvalestation-mobile.html")
         override val zone = Zone3
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> Sunnyvale
+            Southbound -> Lawrence
+        }
     }
 
     object Lawrence : Station() {
@@ -203,6 +300,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/lawrencestation-mobile.html")
         override val zone = Zone4
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> Sunnyvale
+            Southbound -> SantaClara
+        }
     }
 
     object SantaClara : Station() {
@@ -210,6 +311,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/santaclarastation-mobile.html")
         override val zone = Zone4
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> Lawrence
+            Southbound -> CollegePark
+        }
     }
 
     object CollegePark : Station() {
@@ -217,6 +322,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/collegeparkstation-mobile.html")
         override val zone = Zone4
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> SantaClara
+            Southbound -> SanJoseDiridon
+        }
     }
 
     object SanJoseDiridon : Station() {
@@ -224,6 +333,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/sanjosediridonstation-mobile.html")
         override val zone = Zone4
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> CollegePark
+            Southbound -> Tamien
+        }
     }
 
     object Tamien : Station() {
@@ -231,6 +344,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/tamienstation-mobile.html")
         override val zone = Zone4
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> SanJoseDiridon
+            Southbound -> Capitol
+        }
         override val weekdayCommuteOnly = true
     }
 
@@ -239,6 +356,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/capitolstation-mobile.html")
         override val zone = Zone5
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> Tamien
+            Southbound -> BlossomHill
+        }
         override val weekdayCommuteOnly = true
     }
 
@@ -247,6 +368,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/blossomhillstation-mobile.html")
         override val zone = Zone5
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> Capitol
+            Southbound -> MorganHill
+        }
         override val weekdayCommuteOnly = true
     }
 
@@ -255,6 +380,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/morganhillstation-mobile.html")
         override val zone = Zone6
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> BlossomHill
+            Southbound -> SanMartin
+        }
         override val weekdayCommuteOnly = true
     }
 
@@ -263,6 +392,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/sanmartinstation-mobile.html")
         override val zone = Zone6
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> MorganHill
+            Southbound -> Gilroy
+        }
         override val weekdayCommuteOnly = true
     }
 
@@ -271,6 +404,10 @@ sealed class Station {
         override val realtimeMobileUrl =
             URL("http://www.caltrain.com/schedules/realtime/stations/gilroystation-mobile.html")
         override val zone = Zone6
+        override fun nextInDirection(direction: Direction): Station? = when (direction) {
+            Northbound -> SanMartin
+            Southbound -> null
+        }
         override val weekdayCommuteOnly = true
     }
 

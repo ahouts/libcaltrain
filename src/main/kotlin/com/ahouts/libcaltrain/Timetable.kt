@@ -13,7 +13,7 @@ const val WEEKDAY_TIMETABLE_URL: String = "http://www.caltrain.com/schedules/wee
 private val NUMERIC_REGEX = Regex("[0-9 ]+")
 private val RANDOM_TABLE_GARBAGE = Regex("[+*]")
 
-data class Timetable(val departures: Map<Station, List<TimetableDeparture>>)
+typealias Timetable = Map<Station, List<TimetableDeparture>>
 
 data class TimetableDeparture(val direction: Direction, val departure: Departure, val realtime: Boolean)
 
@@ -97,48 +97,47 @@ fun parseTimetable(html: InputStream): Timetable {
         .map { entry -> Pair(entry.key, entry.value.map { it.second }) }
         .toMap()
 
-    return Timetable(departuresData)
+    return departuresData
 }
 
 fun insertRealtimeData(timetable: Timetable, station: Station, realtimeData: Departures): Timetable =
-    Timetable(
-        timetable.departures.asSequence()
-            .map { entry ->
-                when {
-                    isDeparturesFromStation(entry, station) -> Pair(
-                        entry.key,
-                        listOf(
-                            realtimeData.northbound.map { Pair(Northbound, it) },
-                            realtimeData.southbound.map { Pair(Southbound, it) })
-                            .flatten()
-                            .reduce(entry.value) { departures, realtimeDeparture ->
-                                when {
-                                    isPresent(
-                                        departures,
-                                        realtimeDeparture.second,
-                                        realtimeDeparture.first
-                                    ) -> departures.map { departure ->
-                                        if (departure.isRealtimeEqual(
-                                                realtimeDeparture.first,
-                                                realtimeDeparture.second
-                                            )
-                                        ) TimetableDeparture(realtimeDeparture.first, realtimeDeparture.second, true)
-                                        else departure
-                                    }
-                                    else -> departures.plus(
-                                        TimetableDeparture(
+    timetable.asSequence()
+        .map { entry ->
+            when {
+                isDeparturesFromStation(entry, station) -> Pair(
+                    entry.key,
+                    listOf(
+                        realtimeData.northbound.map { Pair(Northbound, it) },
+                        realtimeData.southbound.map { Pair(Southbound, it) })
+                        .flatten()
+                        .reduce(entry.value) { departures, realtimeDeparture ->
+                            when {
+                                isPresent(
+                                    departures,
+                                    realtimeDeparture.second,
+                                    realtimeDeparture.first
+                                ) -> departures.map { departure ->
+                                    if (departure.isRealtimeEqual(
                                             realtimeDeparture.first,
-                                            realtimeDeparture.second,
-                                            true
+                                            realtimeDeparture.second
                                         )
-                                    )
+                                    ) TimetableDeparture(realtimeDeparture.first, realtimeDeparture.second, true)
+                                    else departure
                                 }
-                            })
-                    else -> entry.toPair()
-                }
+                                else -> departures.plus(
+                                    TimetableDeparture(
+                                        realtimeDeparture.first,
+                                        realtimeDeparture.second,
+                                        true
+                                    )
+                                )
+                            }
+                        })
+                else -> entry.toPair()
             }
-            .toMap()
-    )
+        }
+        .toMap()
+
 
 private fun isDeparturesFromStation(
     stationDepartures: Map.Entry<Station, List<TimetableDeparture>>,
