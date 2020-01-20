@@ -5,8 +5,6 @@ import com.ahouts.libcaltrain.Zone.*
 import java.net.URL
 import java.util.*
 
-private val NOT_LETTER = Regex("[^a-zA-Z0-9]")
-
 sealed class Station : Comparable<Station> {
 
     abstract val displayName: String
@@ -51,16 +49,8 @@ sealed class Station : Comparable<Station> {
             Gilroy -> "Gilroy"
         }
 
-    override fun compareTo(other: Station): Int = when (other) {
-        this -> 0
-        else -> when (val next = this.nextInDirection(Southbound)) {
-            null -> 1
-            else -> when (val res = next.compareTo(other)) {
-                0 -> -1
-                else -> res
-            }
-        }
-    }
+    override fun compareTo(other: Station): Int =
+        STATIONS.indexOf(this).compareTo(STATIONS.indexOf(other))
 
     object SanFrancisco : Station() {
         override val displayName = "San Francisco Station"
@@ -348,6 +338,7 @@ sealed class Station : Comparable<Station> {
             Northbound -> SanJoseDiridon
             Southbound -> Capitol
         }
+
         override val weekdayCommuteOnly = true
     }
 
@@ -360,6 +351,7 @@ sealed class Station : Comparable<Station> {
             Northbound -> Tamien
             Southbound -> BlossomHill
         }
+
         override val weekdayCommuteOnly = true
     }
 
@@ -372,6 +364,7 @@ sealed class Station : Comparable<Station> {
             Northbound -> Capitol
             Southbound -> MorganHill
         }
+
         override val weekdayCommuteOnly = true
     }
 
@@ -384,6 +377,7 @@ sealed class Station : Comparable<Station> {
             Northbound -> BlossomHill
             Southbound -> SanMartin
         }
+
         override val weekdayCommuteOnly = true
     }
 
@@ -396,6 +390,7 @@ sealed class Station : Comparable<Station> {
             Northbound -> MorganHill
             Southbound -> Gilroy
         }
+
         override val weekdayCommuteOnly = true
     }
 
@@ -408,10 +403,16 @@ sealed class Station : Comparable<Station> {
             Northbound -> SanMartin
             Southbound -> null
         }
+
         override val weekdayCommuteOnly = true
     }
 
     companion object {
+
+        private val NORTHMOST_STATION = SanFrancisco
+        private val NOT_LETTER = Regex("[^a-zA-Z0-9]")
+
+        val STATIONS = generateSequence(NORTHMOST_STATION as Station) { it.nextInDirection(Southbound) }
 
         fun fromString(s: String): Station? =
             when (s.toLowerCase(Locale.US).replace(NOT_LETTER, "")) {

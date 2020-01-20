@@ -1,6 +1,7 @@
 package com.ahouts.libcaltrain
 
 import com.ahouts.libcaltrain.Station.*
+import com.ahouts.libcaltrain.Station.Companion.STATIONS
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -8,9 +9,8 @@ internal class StationTest {
 
     @Test
     fun `serialization round trip works`() {
-        for (subclass in Station::class.sealedSubclasses) {
-            val s = subclass.objectInstance.toString()
-            assertEquals(Station.fromString(s)!!::class, subclass)
+        for (station in STATIONS) {
+            assertEquals(Station.fromString(station.toString()), station)
         }
     }
 
